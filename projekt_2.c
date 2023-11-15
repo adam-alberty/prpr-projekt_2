@@ -181,9 +181,36 @@ void insert_entry(LinkedList *ll) {
 }
 
 void delete_entry(LinkedList *ll) {
-    char id[6];
-    scanf("%5s", id);
+    char id_to_delete[6];
+    scanf("%5s", id_to_delete);
 
+    Node *node = ll->head;
+    Node *prev_node = NULL;
+    char node_id[6];
+    while (node != NULL) {
+        get_id_from_parts(node_id, node->id);
+
+        // Get node after current
+        Node *next = node->next;
+        
+        if (strcmp(node_id, id_to_delete) == 0) {
+            // Connect previous and next
+            if (prev_node != NULL) {
+                prev_node->next = next;
+            } else {
+                ll->head = next;
+            }
+            // Free current
+            free(node);
+            printf("Zaznam pre ID: %s bol vymazany.\n", id_to_delete);
+        } else {
+            // Set current node as previous for the next iteration
+            prev_node = node;
+        }
+
+        // Go to the next node
+        node = next;
+    }
 }
 
 int main(void) {
@@ -207,6 +234,9 @@ int main(void) {
             case 'z':
                 delete_entry(&ll);
                 break;
+            case 'k':
+                free_list(&ll);
+                return 0;
         }
     }
 
