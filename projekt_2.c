@@ -145,34 +145,45 @@ void show(LinkedList *ll) {
     }
 }
 
+// Add entry to a specified position
 void insert_entry(LinkedList *ll) {
     int c1;
     scanf("%d", &c1);
 
     Node *new_node = (Node *)malloc(sizeof(Node));
-
     if (new_node == NULL) {
         printf("Nepodarilo sa alokovat");
         return;
     }
 
-    scanf("%1s%3s%1s", new_node->id.oznacenie, new_node->id.cislovanie, new_node->id.druh);
-    scanf("%8s%8s", new_node->position.latitude, new_node->position.longitude);
-    scanf("%2s", new_node->type);
-    scanf("%lf", new_node->value);
-    scanf("%d", new_node->time);
-    scanf("%d", new_node->date);
+    scanf(" %1s%3s%1s", new_node->id.oznacenie, new_node->id.cislovanie, new_node->id.druh);
+    new_node->id.oznacenie[1] = '\0';
+    new_node->id.cislovanie[3] = '\0';
+    new_node->id.druh[1] = '\0';
+    scanf(" %8lf%8lf", &new_node->position.latitude, &new_node->position.longitude);
+    scanf(" %2s", new_node->type);
+    new_node->type[2] = '\0';
+    scanf(" %lf", &new_node->value);
+    scanf(" %d", &new_node->time);
+    scanf(" %d", &new_node->date);
 
     Node *node = ll->head;
     int pos = 1;
     while (node != NULL) {
-        if (pos == c1 - 1) {
+        if (pos == (c1 - 1)) {
             new_node->next = node->next;
             node->next = new_node;
-            break;
+            return;
         }
         pos++;
     }
+    append_node(ll, new_node);
+}
+
+void delete_entry(LinkedList *ll) {
+    char id[6];
+    scanf("%5s", id);
+
 }
 
 int main(void) {
@@ -192,6 +203,10 @@ int main(void) {
                 break;
             case 'p':
                 insert_entry(&ll);
+                break;
+            case 'z':
+                delete_entry(&ll);
+                break;
         }
     }
 
