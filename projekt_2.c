@@ -213,6 +213,86 @@ void delete_entry(LinkedList *ll) {
     }
 }
 
+int compare_datetimes(int date_1, int time_1, int date_2, int time_2) {
+    return date_1 + time_1 > date_2 + time_2 ? 1 : 0;
+}
+
+void sort_list(LinkedList *ll) {
+    Node *node = ll->head;
+    printf("Sorting...\n");
+    while (node != NULL) {
+
+        Node *node_to_go_back_to = NULL;
+        while (node != NULL) {
+            // If next node exists
+            if (node->next == NULL) {
+                if (node_to_go_back_to == NULL) {
+                    node_to_go_back_to = node->next;
+                } 
+                break;
+            };
+
+            // if date of current node is greater than the next node - swap nodes
+            if (compare_datetimes(node->date, node->time, node->next->date, node->next->time)) {
+                Node *next_temp = node->next->next;
+                node->next->next = node;
+                node->next = next_temp;
+
+                if (node_to_go_back_to == NULL) {
+                    node_to_go_back_to = node;
+                }
+            } else {
+                node = node->next;
+            }
+        }
+    }
+}
+
+void swap_entries(LinkedList *ll) {
+    printf("Ran?");
+    int c1, c2;
+
+    scanf("%d %d", &c1, &c2);
+
+    int i = 1;
+    Node *node = ll->head;
+    Node *node_to_swap = NULL;
+    Node *next_node;
+
+    while (node != NULL) {
+        if (i == c1 - 1) {
+            if (node_to_swap != NULL) {
+                Node *temp_node = node_to_swap->next;
+                node_to_swap->next = node->next;
+                node_to_swap->next->next = node->next->next;
+
+                node->next = temp_node;
+                temp_node->next = temp_node;
+
+                break;
+            } else {
+                node_to_swap = node;
+            }
+        }
+
+        if (i == c2 - 1) {
+            if (node_to_swap != NULL) {
+                Node *temp_node = node_to_swap->next;
+                node_to_swap->next = node->next;
+                node->next = temp_node;
+                break;
+            } else {
+                node_to_swap = node;
+            }
+        }
+        i++;
+        node = node->next;
+    }
+
+    printf("Sorted");
+
+}
+
 int main(void) {
     char command;
     LinkedList ll = {
@@ -233,6 +313,12 @@ int main(void) {
                 break;
             case 'z':
                 delete_entry(&ll);
+                break;
+            case 'u':
+                sort_list(&ll);
+                break;
+            case 'r':
+                swap_entries(&ll);
                 break;
             case 'k':
                 free_list(&ll);
