@@ -139,10 +139,19 @@ void show(LinkedList *ll) {
         printf("Poz: %lf\t%lf\n", node->position.latitude, node->position.longitude);
         printf("DaC: %d\t%d\n", node->date, node->time);
 
-
         node = node->next;
         i++;
     }
+
+    // show tail - TODO remove
+    node = ll->tail;
+    char id_full[6];
+    get_id_from_parts(id_full, node->id);
+    printf("Tail:\n");
+    printf("%d:\n", i);
+    printf("ID: %s\t%s\t%lf\n", id_full, node->type, node->value);
+    printf("Poz: %lf\t%lf\n", node->position.latitude, node->position.longitude);
+    printf("DaC: %d\t%d\n", node->date, node->time);
 }
 
 // Add entry to a specified position
@@ -249,48 +258,108 @@ void sort_list(LinkedList *ll) {
 }
 
 void swap_entries(LinkedList *ll) {
-    printf("Ran?");
     int c1, c2;
-
     scanf("%d %d", &c1, &c2);
 
+    if (c1 < 1 || c2 < 1) {
+        printf("Invalid input\n");
+        return;
+    }
+
+    if (c1 == c2) {
+        return;
+    }
+
+    // Find nodes to swap
     int i = 1;
     Node *node = ll->head;
-    Node *node_to_swap = NULL;
-    Node *next_node;
+    Node *n1_prev = NULL, *n2_prev = NULL;
+    int is_head = 0;
+    int is_tail = 0;
+    int is_adjacent = 0;
 
-    while (node != NULL) {
-        if (i == c1 - 1) {
-            if (node_to_swap != NULL) {
-                Node *temp_node = node_to_swap->next;
-                node_to_swap->next = node->next;
-                node_to_swap->next->next = node->next->next;
+    if (1 == c1 || 1 == c2) {
+        is_head = 1;
+    }
 
-                node->next = temp_node;
-                temp_node->next = temp_node;
+    if (c1 - c2 == 1 || c1 - c2 == -1) {
+        is_adjacent = 1;
+    }
 
-                break;
+    while (node != NULL && (i < c1 || i < c2)) {
+        if (i == c1 - 1 || i == c2 - 1) {
+            if (n1_prev != NULL) {
+                n2_prev = node;
             } else {
-                node_to_swap = node;
-            }
-        }
-
-        if (i == c2 - 1) {
-            if (node_to_swap != NULL) {
-                Node *temp_node = node_to_swap->next;
-                node_to_swap->next = node->next;
-                node->next = temp_node;
-                break;
-            } else {
-                node_to_swap = node;
+                n1_prev = node;
             }
         }
         i++;
         node = node->next;
     }
 
-    printf("Sorted");
+    if (n1_prev == NULL) {
+        return;
+    }
 
+    if (i == c1 || i == c2) {
+        return;
+    }
+
+    if (!is_head && n2_prev == NULL) {
+        return;
+    }
+
+    if ((is_head && n1_prev->next->next == NULL) || (!is_head && n2_prev->next->next == NULL)) {
+        is_tail = 1;
+    }
+
+    printf("Is tail: %d\n", is_tail);
+
+    if (is_head && is_adjacent) {
+        if (is_tail) {
+            ll->tail = ll->head;
+        }
+
+        Node *head_prev = ll->head;
+        ll->head = n1_prev->next;
+        head_prev->next = ll->head->next;
+        ll->head->next = head_prev;
+
+    } else if (is_head) {
+        if (is_tail) {
+            ll->tail = ll->head;
+        }
+        Node *old_head = ll->head;
+        Node *old_node_next_next = n1_prev->next->next;
+        ll->head = n1_prev->next;
+        n1_prev->next->next = old_head->next;
+        n1_prev->next = old_head;
+        old_head->next = old_node_next_next;
+
+    } else if (is_adjacent) {
+        if (is_tail) {
+            ll->tail = n1_prev->next;
+        }
+
+        Node *n2_next = n2_prev->next->next;
+        n1_prev->next = n2_prev->next;
+        n2_prev->next->next = n2_prev;
+        n2_prev->next = n2_next;
+
+    } else {
+        if (is_tail) {
+            ll->tail = n1_prev->next;
+        }
+
+        Node *n1_old = n1_prev->next;
+        Node *n1_old_next = n1_prev->next->next;
+        Node *n2_old_next = n2_prev->next->next;
+        n1_prev->next = n2_prev->next;
+        n1_prev->next->next = n1_old->next;
+        n2_prev->next = n1_old;
+        n1_old->next = n2_old_next;
+    }
 }
 
 int main(void) {
@@ -325,7 +394,6 @@ int main(void) {
                 return 0;
         }
     }
-
 
     return 0;
 }
