@@ -302,10 +302,6 @@ void swap_entries(LinkedList *ll) {
         return;
     }
 
-    if (i == c1 || i == c2) {
-        return;
-    }
-
     if (!is_head && n2_prev == NULL) {
         return;
     }
