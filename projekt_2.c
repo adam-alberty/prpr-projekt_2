@@ -22,7 +22,6 @@ typedef struct Node {
     int date;
 
     struct Node *next;
-    struct Node *prev;
 } Node;
 
 typedef struct LinkedList {
@@ -43,7 +42,7 @@ void append_node(LinkedList *ll, Node *node) {
     }
 }
 
-// deallocate list
+// k - deallocate list
 void free_list(LinkedList *ll) {
     Node *node = ll->head;
     while (node != NULL) {
@@ -114,7 +113,7 @@ void load(LinkedList *ll) {
         i++;
         if (i == 7) i = 0;
     }
-    printf("Nacitalo sa %d zaznamov\n", num_of_loaded); // TODO
+    printf("Nacitalo sa %d zaznamov\n", num_of_loaded);
     fclose(fp);
 }
 
@@ -135,9 +134,9 @@ void show(LinkedList *ll) {
         get_id_from_parts(id_full, node->id);
 
         printf("%d:\n", i);
-        printf("ID: %s\t%s\t%lf\n", id_full, node->type, node->value);
-        printf("Poz: %lf\t%lf\n", node->position.latitude, node->position.longitude);
-        printf("DaC: %d\t%d\n", node->date, node->time);
+        printf("ID: %s\t%s\t%.2lf\n", id_full, node->type, node->value);
+        printf("Poz: %.4lf\t%.4lf\n", node->position.latitude, node->position.longitude);
+        printf("DaC: %08d\t%04d\n", node->date, node->time);
 
         node = node->next;
         i++;
@@ -154,7 +153,7 @@ void show(LinkedList *ll) {
     printf("DaC: %d\t%d\n", node->date, node->time);
 }
 
-// Add entry to a specified position
+// p - Add entry to a specified position
 void insert_entry(LinkedList *ll) {
     int c1;
     scanf("%d", &c1);
@@ -189,6 +188,7 @@ void insert_entry(LinkedList *ll) {
     append_node(ll, new_node);
 }
 
+// z - Delete entry from the list
 void delete_entry(LinkedList *ll) {
     char id_to_delete[6];
     scanf("%5s", id_to_delete);
@@ -209,6 +209,11 @@ void delete_entry(LinkedList *ll) {
             } else {
                 ll->head = next;
             }
+
+            if (next == NULL) {
+                ll->tail = prev_node;
+            } 
+        
             // Free current
             free(node);
             printf("Zaznam pre ID: %s bol vymazany.\n", id_to_delete);
@@ -222,41 +227,80 @@ void delete_entry(LinkedList *ll) {
     }
 }
 
+// Compare datetimes for sorting
 int compare_datetimes(int date_1, int time_1, int date_2, int time_2) {
     return date_1 + time_1 > date_2 + time_2 ? 1 : 0;
 }
 
-void sort_list(LinkedList *ll) {
-    Node *node = ll->head;
-    printf("Sorting...\n");
-    while (node != NULL) {
-
-        Node *node_to_go_back_to = NULL;
-        while (node != NULL) {
-            // If next node exists
-            if (node->next == NULL) {
-                if (node_to_go_back_to == NULL) {
-                    node_to_go_back_to = node->next;
-                } 
-                break;
-            };
-
-            // if date of current node is greater than the next node - swap nodes
-            if (compare_datetimes(node->date, node->time, node->next->date, node->next->time)) {
-                Node *next_temp = node->next->next;
-                node->next->next = node;
-                node->next = next_temp;
-
-                if (node_to_go_back_to == NULL) {
-                    node_to_go_back_to = node;
-                }
-            } else {
-                node = node->next;
-            }
-        }
+Node *copy_node(Node *node) {
+    Node *new_node = malloc(sizeof(Node));
+    if (new_node == NULL) {
+        return NULL;
     }
+
+    strcpy(new_node->id.oznacenie, node->id.oznacenie);
+    strcpy(new_node->id.cislovanie, node->id.cislovanie);
+    strcpy(new_node->id.druh, node->id.druh);
+    strcpy(new_node->type, node->type);
+    new_node->position.latitude = node->position.latitude;
+    new_node->position.longitude = node->position.longitude;
+    new_node->value = node->value;
+    new_node->time = node->time;
+    new_node->date = node->date;
+
+    return new_node;
 }
 
+// u - Sort the list by datetime - insertion sort
+void sort_list(LinkedList *ll) {
+    LinkedList sorted_ll = {
+        .head = NULL,
+        .tail = NULL
+    };
+    Node *node = ll->head;
+
+    int i = 1;
+    while (node != NULL) {
+        Node *current_node = ll->head;
+        Node *prev_node = NULL;
+        Node *max_node = ll->head;
+        Node *max_node_prev = NULL;
+
+        while (current_node != NULL) {
+            // if date of current node is greater than the max node - swap nodes
+            if (compare_datetimes(current_node->date, current_node->time, max_node->date, max_node->time)) {
+                max_node = current_node;
+                max_node_prev = prev_node;
+            }
+
+            prev_node = current_node;
+            current_node = current_node->next;
+        }
+
+        append_node(&sorted_ll, copy_node(max_node));
+
+        // Delete node from the list
+        if (max_node_prev == NULL) {
+             ll->head = max_node->next;
+        } else {
+            max_node_prev->next = max_node->next;
+        }
+        
+        if (max_node->next == NULL) {
+            ll->tail = max_node_prev;
+        }
+
+        free(max_node);
+
+        node = ll->head;
+    }
+
+    free_list(ll);
+    ll->head = sorted_ll.head;
+    ll->tail = sorted_ll.tail;
+}
+
+// r - Swap 2 nodes of a list
 void swap_entries(LinkedList *ll) {
     int c1, c2;
     scanf("%d %d", &c1, &c2);
@@ -306,11 +350,18 @@ void swap_entries(LinkedList *ll) {
         return;
     }
 
+    if (!is_head && n2_prev->next == NULL) {
+        return;
+    }
+
+
+    if (is_head && n1_prev->next == NULL) {
+        return;
+    }
+
     if ((is_head && n1_prev->next->next == NULL) || (!is_head && n2_prev->next->next == NULL)) {
         is_tail = 1;
     }
-
-    printf("Is tail: %d\n", is_tail);
 
     if (is_head && is_adjacent) {
         if (is_tail) {
