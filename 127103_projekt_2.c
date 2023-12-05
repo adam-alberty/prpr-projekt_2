@@ -141,16 +141,6 @@ void show(LinkedList *ll) {
         node = node->next;
         i++;
     }
-
-    // show tail - TODO remove
-    node = ll->tail;
-    char id_full[6];
-    get_id_from_parts(id_full, node->id);
-    printf("Tail:\n");
-    printf("%d:\n", i);
-    printf("ID: %s\t%s\t%lf\n", id_full, node->type, node->value);
-    printf("Poz: %lf\t%lf\n", node->position.latitude, node->position.longitude);
-    printf("DaC: %d\t%d\n", node->date, node->time);
 }
 
 // p - Add entry to a specified position
@@ -176,16 +166,40 @@ void insert_entry(LinkedList *ll) {
     scanf(" %d", &new_node->date);
 
     Node *node = ll->head;
+    Node *prev = NULL;
     int pos = 1;
     while (node != NULL) {
-        if (pos == (c1 - 1)) {
-            new_node->next = node->next;
-            node->next = new_node;
-            return;
+        if (pos == c1) {
+            break;
         }
+        prev = node;
+        node = node->next;
         pos++;
     }
-    append_node(ll, new_node);
+
+    // It's head
+    if (prev == NULL) {
+        new_node->next = ll->head;
+        ll->head = new_node;
+
+        if (node == NULL) {
+            ll->tail = new_node;
+        }
+
+        return;
+    }
+
+    if (node == NULL) {
+        prev->next = new_node;
+        new_node->next = NULL;
+        ll->tail = new_node;
+        return;
+    }
+
+    prev->next = new_node;
+    new_node->next = node;
+
+
 }
 
 // z - Delete entry from the list
